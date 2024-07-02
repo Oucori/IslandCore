@@ -32,11 +32,7 @@ public class TeamSelectorItem extends Item {
 	@Override
 	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
 
-		if(user.isServer()) {
-			//ClientPlayNetworking.send(IslandCoreNetworkingConstants.SHOW_TEAM_SELECTION_SCREEN, PacketByteBufs.empty());
-			//ServerPlayNetworking.send((ServerPlayerEntity) user, IslandCoreNetworkingConstants.SHOW_TEAM_SELECTION_SCREEN, PacketByteBufs.empty());
-			MinecraftClient.getInstance().setScreen(new TeamSelectionScreen());
-		}
+		MinecraftClient.getInstance().setScreen(new TeamSelectionScreen());
 
 		return TypedActionResult.pass(user.getStackInHand(hand));
 	}
