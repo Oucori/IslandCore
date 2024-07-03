@@ -1,10 +1,20 @@
 package gg.wildblood.island_core.screen;
 
+import gg.wildblood.island_core.IslandCore;
+import gg.wildblood.island_core.PlayerEntityAccessor;
+import gg.wildblood.island_core.multiplayer.IslandCoreNetworkingConstants;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.TextWidget;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.quiltmc.loader.api.minecraft.ClientOnly;
+import org.quiltmc.qsl.networking.api.PacketByteBufs;
+import org.quiltmc.qsl.networking.api.ServerPlayNetworking;
+import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
 
 @ClientOnly
 public class TeamSelectionScreen extends Screen {
@@ -17,16 +27,30 @@ public class TeamSelectionScreen extends Screen {
 
 	@Override
 	protected void init() {
-		button1 = ButtonWidget.builder(Text.literal("Button 1"), button -> {
-				System.out.println("You clicked button1!");
+		button1 = ButtonWidget.builder(Text.literal("Increment Player Island ID"), button -> {
+				PlayerEntity playerEntity = MinecraftClient.getInstance().player;
+				if (playerEntity == null) return;
+				if(playerEntity instanceof PlayerEntityAccessor) {
+					((PlayerEntityAccessor) playerEntity).islandCore$incrementIslandId();
+					ClientPlayNetworking.send(IslandCoreNetworkingConstants.SET_ISLAND_ID, PacketByteBufs.empty());
+
+
+					System.out.println("Player Island ID: " + ((PlayerEntityAccessor) playerEntity).islandCore$getIslandId());
+				}
 			})
-			.positionAndSize(width / 2 - 205, 20, 200, 20)
+			.positionAndSize(width / 2 - 205, 50, 200, 20)
 			.tooltip(Tooltip.create(Text.literal("Tooltip of button1")))
 			.build();
-		button2 = ButtonWidget.builder(Text.literal("Button 2"), button -> {
-				System.out.println("You clicked button2!");
+		button2 = ButtonWidget.builder(Text.literal("Get Player Island ID"), button -> {
+				PlayerEntity playerEntity = MinecraftClient.getInstance().player;
+				if (playerEntity == null) return;
+				if(playerEntity instanceof PlayerEntityAccessor) {
+					int islandId = ((PlayerEntityAccessor) playerEntity).islandCore$getIslandId();
+
+					System.out.println("Player Island ID: " + islandId);
+				}
 			})
-			.positionAndSize(width / 2 + 5, 20, 200, 20)
+			.positionAndSize(width / 2 + 5, 50, 200, 20)
 			.tooltip(Tooltip.create(Text.literal("Tooltip of button2")))
 			.build();
 
