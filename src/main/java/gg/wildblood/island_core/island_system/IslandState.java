@@ -2,22 +2,23 @@ package gg.wildblood.island_core.island_system;
 
 
 import gg.wildblood.island_core.IslandCore;
+import net.minecraft.client.MinecraftClient;
 import org.quiltmc.loader.api.QuiltLoader;
 import org.spongepowered.include.com.google.gson.Gson;
 import org.spongepowered.include.com.google.gson.GsonBuilder;
 import org.spongepowered.include.com.google.gson.JsonSyntaxException;
-import org.spongepowered.include.com.google.gson.annotations.Expose;
 import org.spongepowered.include.com.google.gson.reflect.TypeToken;
 import org.spongepowered.include.com.google.gson.stream.JsonReader;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 public class IslandState {
-	@Expose(serialize = false, deserialize = false)
+	private static final File ConfigurationDirectory = QuiltLoader.getConfigDir().resolve("island_core").toFile();
+	private static final File StateFile = new File(ConfigurationDirectory, "islands.json");
+
 	private static IslandState instance = null;
 
 	private List<Island> islands = new ArrayList<>();
@@ -30,51 +31,45 @@ public class IslandState {
 		this.islands = islands;
 	}
 
-	public boolean writeToStateFile() {
-		try {
-			File StateFile = QuiltLoader.getConfigDir().resolve("islands.json").toFile();
+	public void writeToStateFile() {
+		if(!ConfigurationDirectory.exists() && !ConfigurationDirectory.mkdirs()) {
+			IslandCore.LOGGER.info("Couldn't Create Config Directory for Island State.");
+			return;
+		}
+
+
+		try(BufferedWriter writer = new BufferedWriter(new FileWriter(StateFile))) {
 
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-			gson.toJson(islands, new FileWriter(StateFile));
+			gson.toJson(islands, writer);
 
-			return true;
 		} catch (IOException e) {
 			IslandCore.LOGGER.error("Cant Save Island State, IslandState file not found.");
-
-			return false;
 		}
 	}
 
-	private boolean readFromStateFile() {
-		try {
-			File StateFile = QuiltLoader.getConfigDir().resolve("islands.json").toFile();
+	private void readFromStateFile() {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-			JsonReader reader = new JsonReader(new FileReader(StateFile));
+		try (JsonReader reader = new JsonReader(new FileReader(StateFile))) {
 
 			Type islandListType = new TypeToken<List<Island>>() {}.getType();
 
-			IslandState data = gson.fromJson(reader, islandListType);
+			islands = gson.fromJson(reader, islandListType);
 
-			if(data == null) {
+			if(islands == null) {
 				IslandCore.LOGGER.warn("Cant Load Island State, IslandState file is empty. ( if this is the first time you load an island you can ignore this message! )");
 
-				return false;
+				islands = new ArrayList<>();
 			}
 
-			this.setIslands(data.getIslands());
-
-			return true;
 		} catch (FileNotFoundException e) {
-			IslandCore.LOGGER.error("Cant Load Island State, IslandState file not found.");
-
-			return false;
+			IslandCore.LOGGER.error("Cant Load Island State, IslandState file not found. FileNotFoundException");
 		} catch (JsonSyntaxException e) {
 			IslandCore.LOGGER.error("Cant Load Island State, IslandState file is corrupted.");
-
-			return false;
+		} catch (IOException e) {
+			IslandCore.LOGGER.error("Cant Load Island State, IslandState file not found. IOException");
 		}
 	}
 
