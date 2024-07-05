@@ -3,11 +3,24 @@ package gg.wildblood.island_core.util;
 import gg.wildblood.island_core.island_system.Island;
 import gg.wildblood.island_core.island_system.IslandState;
 import gg.wildblood.island_core.structure.StructureConstants;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import org.apache.logging.log4j.core.jmx.Server;
+
+import java.util.List;
 
 public class IslandUtilities {
 	private static final int MIN_DISTANCE = 100;
+
+	public static Island getIsland(ServerPlayerEntity player){
+		for (Island island : IslandState.getInstance().getIslands()) {
+			if (island.getInhabitants().stream().anyMatch(inhabitant -> inhabitant.getUuid().equals(player.getUuid()))) {
+				return island;
+			}
+		}
+		return null;
+	}
 
 	public static Island getIsland(int id) {
 		for (Island island : IslandState.getInstance().getIslands()) {
@@ -16,6 +29,18 @@ public class IslandUtilities {
 			}
 		}
 		return null;
+	}
+
+	public static List<Island> getIslands() {
+		return IslandState.getInstance().getIslands();
+	}
+
+	public static void addInhabitant(ServerPlayerEntity player, Island island) {
+		island.addInhabitant(player.getName().getString(), player.getUuid());
+	}
+
+	public static void removeInhabitant(ServerPlayerEntity player, Island island) {
+		island.removeInhabitant(player.getUuid());
 	}
 
 	public static Island createIsland(ServerWorld world){
@@ -36,6 +61,19 @@ public class IslandUtilities {
 		islandState.writeToStateFile(); // Save the new island state
 
 		return newIsland;
+	}
+
+	public static void saveState() {
+		IslandState.getInstance().writeToStateFile();
+	}
+
+	public static void teleportTo(ServerPlayerEntity player, Island island) {
+		teleportTo(player, island, false);
+	}
+
+	public static void teleportTo(ServerPlayerEntity player, Island island, boolean setSpawn) {
+		player.teleport(island.getIslandSpawnPosition().getX(), island.getIslandSpawnPosition().getY(), island.getIslandSpawnPosition().getZ());
+		player.setSpawnPoint(player.getServerWorld().getRegistryKey(), island.getIslandSpawnPosition(), 0, true, false);
 	}
 
 	private static BlockPos calculatePosition(BlockPos center, int count) {

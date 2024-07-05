@@ -5,20 +5,12 @@ import gg.wildblood.island_core.item.ModItems;
 import gg.wildblood.island_core.multiplayer.IslandCoreNetworkingConstants;
 import gg.wildblood.island_core.structure.StructureConstants;
 import gg.wildblood.island_core.util.StructurePlacementUtil;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.structure.Structure;
-import net.minecraft.structure.StructureManager;
-import net.minecraft.structure.StructurePlacementData;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
 import org.quiltmc.qsl.lifecycle.api.event.ServerWorldLoadEvents;
 import org.quiltmc.qsl.networking.api.ServerPlayNetworking;
-import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +29,9 @@ public class IslandCore implements ModInitializer {
 
 		ServerPlayNetworking.registerGlobalReceiver(IslandCoreNetworkingConstants.SET_ISLAND_ID, (server, player, handler, buf, responseSender) -> {
 			IslandCore.LOGGER.info("ServerPlayNetworking Clicked on Server");
-			if (player instanceof PlayerEntityAccessor) {
-				((PlayerEntityAccessor) player).islandCore$incrementIslandId();
-			}
+//			if (player instanceof PlayerEntityAccessor) {
+//				((PlayerEntityAccessor) player).islandCore$incrementIslandId();
+//			}
 		});
 
 		ServerWorldLoadEvents.LOAD.register((server, world) -> {

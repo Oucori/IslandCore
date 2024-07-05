@@ -2,6 +2,8 @@ package gg.wildblood.island_core.command.custom;
 import com.mojang.brigadier.context.CommandContext;
 import gg.wildblood.island_core.island_system.Island;
 import gg.wildblood.island_core.util.IslandUtilities;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -10,16 +12,27 @@ public class IslandCommands {
 	public static int create(CommandContext<ServerCommandSource> context) {
 		ServerPlayerEntity player = context.getSource().getPlayer();
 
-		Island newIsland = IslandUtilities.createIsland(context.getSource().getWorld());
-
 		if(player == null) {
-			context.getSource().sendFeedback(() -> Text.literal("Island created, wont set Position and Spawn because Player is null!"), false);
+			context.getSource().sendFeedback(() -> Text.literal("You are not a Player!"), false);
 			return 0;
 		}
 
-		player.teleport(newIsland.getIslandSpawnPosition().getX(), newIsland.getIslandSpawnPosition().getY(), newIsland.getIslandSpawnPosition().getZ());
+		Island playerIsland = IslandUtilities.getIsland(player);
 
-		player.setSpawnPoint(context.getSource().getWorld().getRegistryKey(), newIsland.getIslandSpawnPosition(), 0, true, false);
+		if(playerIsland != null) {
+			context.getSource().sendFeedback(() -> Text.literal("You already have a Island!"), false);
+			return 0;
+		}
+
+		// Send Animation to Player to swoosh them to the Island
+
+		Island newIsland = IslandUtilities.createIsland(context.getSource().getWorld());
+
+		newIsland.addInhabitant(player.getName().getString(), player.getUuid());
+
+		IslandUtilities.saveState();
+
+		IslandUtilities.teleportTo(player, newIsland, true);
 
 		context.getSource().sendFeedback(() -> Text.literal("Player " + player.getDisplayName().getString() + " an Island"), false);
 		return 1;
@@ -42,9 +55,15 @@ public class IslandCommands {
 			return 0;
 		}
 
-		player.teleport(targetIsland.getIslandSpawnPosition().getX(), targetIsland.getIslandSpawnPosition().getY(), targetIsland.getIslandSpawnPosition().getZ());
+		Island playerIsland = IslandUtilities.getIsland(player);
 
-		player.setSpawnPoint(context.getSource().getWorld().getRegistryKey(), targetIsland.getIslandSpawnPosition(), 0, true, false);
+		if(playerIsland != null) IslandUtilities.removeInhabitant(player, playerIsland);
+
+		IslandUtilities.addInhabitant(player, targetIsland);
+
+		IslandUtilities.teleportTo(player, targetIsland, true);
+
+		IslandUtilities.saveState();
 
 		context.getSource().sendFeedback(() -> Text.literal("Joined Island with ID: " + targetIsland.getId() + "!"), false);
 		return 1;
@@ -57,11 +76,39 @@ public class IslandCommands {
 
 	// Add Player to Team
 	// Remove Player from Team
-	// Remove Team
 	// List Player in Team
 
+	public static int home(CommandContext<ServerCommandSource> context) {
+		ServerPlayerEntity player = context.getSource().getPlayer();
+
+		if(player == null) {
+			context.getSource().sendFeedback(() -> Text.literal("You are not a Player!"), false);
+			return 0;
+		}
+
+		Island playerIsland = IslandUtilities.getIsland(player);
+
+		if(playerIsland == null) {
+			context.getSource().sendFeedback(() -> Text.literal("You do not have an Island!"), false);
+			return 0;
+		}
+
+		IslandUtilities.teleportTo(player, playerIsland);
+
+		context.getSource().sendFeedback(() -> Text.literal("Back at Home!"), false);
+		return 1;
+	}
+
 	public static int list(CommandContext<ServerCommandSource> context) {
-		context.getSource().sendFeedback(() -> Text.literal("Group List!"), false);
+		context.getSource().sendFeedback(() -> Text.literal("Island List:"), false);
+
+		IslandUtilities.getIslands().forEach(island -> {
+			context.getSource().sendFeedback(() -> Text.literal(island.getId() + "."), false);
+			island.getInhabitants().forEach((inhabitant) -> {
+				context.getSource().sendFeedback(() -> Text.literal("  " + inhabitant.getName()), false);
+			});
+		});
+
 		return 1;
 	}
 }

@@ -19,8 +19,14 @@ public class ModCommands {
 							.executes(IslandCommands::join)
 						)
 					)
+					.then(literal("home")
+						.executes(IslandCommands::home)
+					)
 					.then(literal("leave")
 						.executes(IslandCommands::leave)
+					)
+					.then(literal("list")
+						.executes(IslandCommands::list)
 					)
 			);
 		});
