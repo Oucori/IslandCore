@@ -1,15 +1,19 @@
 package gg.wildblood.island_core.command.custom;
 import com.mojang.brigadier.context.CommandContext;
-import gg.wildblood.island_core.island_system.Island;
+import gg.wildblood.island_core.data.Island;
 import gg.wildblood.island_core.util.IslandUtilities;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.world.World;
 
 public class IslandCommands {
 	public static int create(CommandContext<ServerCommandSource> context) {
+		if(!context.getSource().getWorld().getRegistryKey().equals(World.OVERWORLD)) {
+			context.getSource().sendFeedback(() -> Text.literal("You can only create Islands in the Overworld!"), false);
+			return 0;
+		}
+
 		ServerPlayerEntity player = context.getSource().getPlayer();
 
 		if(player == null) {
@@ -39,6 +43,10 @@ public class IslandCommands {
 	}
 
 	public static int join(CommandContext<ServerCommandSource> context) {
+		if(!context.getSource().getWorld().getRegistryKey().equals(World.OVERWORLD)) {
+			context.getSource().sendFeedback(() -> Text.literal("You can only join Islands in the Overworld!"), false);
+			return 0;
+		}
 		int islandId = context.getArgument("island_name", Integer.class); // This is the island id (int
 
 		Island targetIsland = IslandUtilities.getIsland(islandId);
@@ -79,6 +87,11 @@ public class IslandCommands {
 	// List Player in Team
 
 	public static int home(CommandContext<ServerCommandSource> context) {
+		if(!context.getSource().getWorld().getRegistryKey().equals(World.OVERWORLD)) {
+			context.getSource().sendFeedback(() -> Text.literal("You can only teleport to your Island in the Overworld!"), false);
+			return 0;
+		}
+
 		ServerPlayerEntity player = context.getSource().getPlayer();
 
 		if(player == null) {

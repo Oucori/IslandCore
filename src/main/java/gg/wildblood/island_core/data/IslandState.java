@@ -1,9 +1,7 @@
-package gg.wildblood.island_core.island_system;
+package gg.wildblood.island_core.data;
 
 
 import gg.wildblood.island_core.IslandCore;
-import net.minecraft.client.MinecraftClient;
-import org.quiltmc.loader.api.QuiltLoader;
 import org.spongepowered.include.com.google.gson.Gson;
 import org.spongepowered.include.com.google.gson.GsonBuilder;
 import org.spongepowered.include.com.google.gson.JsonSyntaxException;
@@ -16,27 +14,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class IslandState {
-	private static final File ConfigurationDirectory = QuiltLoader.getConfigDir().resolve("island_core").toFile();
-	private static final File StateFile = new File(ConfigurationDirectory, "islands.json");
+	private static final File StateFile = new File(IslandCore.ConfigurationDirectory, "islands.json");
 
 	private static IslandState instance = null;
 
-	private List<Island> islands = new ArrayList<>();
-
-	public List<Island> getIslands() {
-		return islands;
+	public static IslandState getInstance() {
+		if(instance == null) {
+			instance = new IslandState();
+			instance.load();
+		}
+		return instance;
 	}
 
-	public void setIslands(List<Island> islands) {
-		this.islands = islands;
-	}
-
-	public void writeToStateFile() {
-		if(!ConfigurationDirectory.exists() && !ConfigurationDirectory.mkdirs()) {
+	public void save() {
+		if(!IslandCore.ConfigurationDirectory.exists() && !IslandCore.ConfigurationDirectory.mkdirs()) {
 			IslandCore.LOGGER.info("Couldn't Create Config Directory for Island State.");
 			return;
 		}
-
 
 		try(BufferedWriter writer = new BufferedWriter(new FileWriter(StateFile))) {
 
@@ -49,7 +43,7 @@ public class IslandState {
 		}
 	}
 
-	private void readFromStateFile() {
+	private void load() {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 		try (JsonReader reader = new JsonReader(new FileReader(StateFile))) {
@@ -73,11 +67,13 @@ public class IslandState {
 		}
 	}
 
-	public static IslandState getInstance() {
-		if(instance == null) {
-			instance = new IslandState();
-			instance.readFromStateFile();
-		}
-		return instance;
+	private List<Island> islands = new ArrayList<>();
+
+	public List<Island> getIslands() {
+		return islands;
+	}
+
+	public void setIslands(List<Island> islands) {
+		this.islands = islands;
 	}
 }

@@ -1,12 +1,11 @@
 package gg.wildblood.island_core.util;
 
-import gg.wildblood.island_core.island_system.Island;
-import gg.wildblood.island_core.island_system.IslandState;
+import gg.wildblood.island_core.data.Island;
+import gg.wildblood.island_core.data.IslandState;
 import gg.wildblood.island_core.structure.StructureConstants;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import org.apache.logging.log4j.core.jmx.Server;
 
 import java.util.List;
 
@@ -58,13 +57,13 @@ public class IslandUtilities {
 
 		islandState.getIslands().add(newIsland); // Add the new island to the list
 
-		islandState.writeToStateFile(); // Save the new island state
+		islandState.save(); // Save the new island state
 
 		return newIsland;
 	}
 
 	public static void saveState() {
-		IslandState.getInstance().writeToStateFile();
+		IslandState.getInstance().save();
 	}
 
 	public static void teleportTo(ServerPlayerEntity player, Island island) {
@@ -73,7 +72,7 @@ public class IslandUtilities {
 
 	public static void teleportTo(ServerPlayerEntity player, Island island, boolean setSpawn) {
 		player.teleport(island.getIslandSpawnPosition().getX(), island.getIslandSpawnPosition().getY(), island.getIslandSpawnPosition().getZ());
-		player.setSpawnPoint(player.getServerWorld().getRegistryKey(), island.getIslandSpawnPosition(), 0, true, false);
+		if(setSpawn) player.setSpawnPoint(player.getServerWorld().getRegistryKey(), island.getIslandSpawnPosition(), 0, true, false);
 	}
 
 	private static BlockPos calculatePosition(BlockPos center, int count) {
